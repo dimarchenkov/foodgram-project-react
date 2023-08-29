@@ -1,5 +1,17 @@
 version: '3.3'
+
+volumes:
+  pg_data:
+  static:
+  media:
+
 services:
+  db:
+    image: postgres
+    restart: always
+    env_file: .env.example
+    volumes:
+      - pg_data:/var/lib/postgresql/data
 
   frontend:
     build:
@@ -7,6 +19,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+  backend:
+
   nginx:
     image: nginx:1.19.3
     ports:

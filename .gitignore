@@ -130,3 +130,7 @@ dmypy.json
 
 # .idea
 .idea
+
+# js React
+frontend/build/
+frontend/node_modules/
