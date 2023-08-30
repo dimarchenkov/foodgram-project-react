@@ -1,3 +1,83 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import (AmountIngredient, FavoriteRecipe, Ingredient, Recipe,
+                     ShoppingList, Tag)
+
+
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "author",
+        "count_favorites",
+    )
+    list_filter = (
+        "author",
+        "name",
+        "tags",
+    )
+    # inlines = (RecipeIngredientInline, )
+
+    @admin.display(description='Количество избранных')
+    def count_favorites(self, obj):
+        return obj.favorites.count()
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'measurement_unit'
+    )
+    list_filter = ('name',)
+    search_fields = ('name',)
+    empty_value_display = '-пусто-'
+
+
+class AmountIngredientAdmin(admin.ModelAdmin):
+    list_display = (
+        'ingredient',
+        'amount'
+    )
+    list_filter = ('ingredient', 'amount')
+    search_fields = ('ingredient',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'color',
+        'slug'
+    )
+    list_filter = ('name', 'color', 'slug')
+    search_fields = ('name',)
+    empty_value_display = '-пусто-'
+
+
+class ShoppingListAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'recipe'
+    )
+    list_filter = ('user', 'recipe')
+    search_fields = ('user',)
+    empty_value_display = '-пусто-'
+
+
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'recipe'
+    )
+    list_filter = ('user', 'recipe')
+    search_fields = ('user',)
+    empty_value_display = '-пусто-'
+
+
+admin.site.register(Tag, TagAdmin)
+admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(AmountIngredient, AmountIngredientAdmin)
+admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(FavoriteRecipe, FavoriteAdmin)
+admin.site.register(ShoppingList, ShoppingListAdmin)
