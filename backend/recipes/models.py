@@ -8,16 +8,16 @@ class Tag(models.Model):
     name = models.CharField(
         verbose_name='Название тега',
         max_length=50,
-        unique=True
+        unique=True,
     )
     color = models.CharField(
         verbose_name='Цветовой HEX-код тега',
         max_length=100,
-        unique=True
+        unique=True,
     )
     slug = models.SlugField(
         unique=True,
-        verbose_name='Слаг тега'
+        verbose_name='Слаг тега',
     )
 
     class Meta:
@@ -31,11 +31,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название ингредиента',
-        max_length=200
+        max_length=200,
     )
     measurement_unit = models.CharField(
         verbose_name='Единицы измерения ингредиента',
-        max_length=50
+        max_length=50,
     )
 
     class Meta:
@@ -135,7 +135,6 @@ class FavoriteRecipe(models.Model):
 
     class Meta:
         verbose_name = "Избранный рецепт"
-        verbose_name_plural = "Избранные рецепты"
         ordering = ['user']
         constraints = [
             models.UniqueConstraint(
@@ -164,7 +163,6 @@ class ShoppingList(models.Model):
 
     class Meta:
         verbose_name = "Список покупок"
-        verbose_name_plural = "Список покупок"
         ordering = ['user']
         constraints = [
             models.UniqueConstraint(

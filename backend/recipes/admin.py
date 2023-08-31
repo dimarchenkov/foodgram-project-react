@@ -4,6 +4,7 @@ from .models import (AmountIngredient, FavoriteRecipe, Ingredient, Recipe,
                      ShoppingList, Tag)
 
 
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -33,6 +34,7 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(AmountIngredient)
 class AmountIngredientAdmin(admin.ModelAdmin):
     list_display = (
         'ingredient',
@@ -55,6 +57,7 @@ class TagAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
     list_display = (
         'user',
@@ -65,6 +68,7 @@ class ShoppingListAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(FavoriteRecipe)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = (
         'user',
@@ -73,11 +77,3 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_filter = ('user', 'recipe')
     search_fields = ('user',)
     empty_value_display = '-пусто-'
-
-
-admin.site.register(Tag, TagAdmin)
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(AmountIngredient, AmountIngredientAdmin)
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(FavoriteRecipe, FavoriteAdmin)
-admin.site.register(ShoppingList, ShoppingListAdmin)

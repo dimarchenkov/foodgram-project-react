@@ -1,20 +1,34 @@
-""" Настойки интерфейса панели администратора"""
+"""
+Настойки интерфейса панели администратора.
+"""
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin, register
-from .models import User
+from django.contrib.auth.admin import UserAdmin
+
+from .models import Follow, User
 
 
-@register(User)
+@admin.register(User)
 class Admin(UserAdmin):
     list_display = (
         'username',
         'first_name',
         'last_name',
-        'email'
+        'email',
     )
-    list_filter = ('email', 'username')
-    search_fields = ('username', 'email')
-    empty_value_display = '-empty-'
+    list_filter = (
+        'email',
+        'username',
+    )
+    search_fields = (
+        'username',
+        'email',
+    )
+    empty_value_display = '-пусто-'
 
 
-admin.site.register(User, Admin)
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'author',
+    )

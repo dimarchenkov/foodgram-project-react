@@ -1,9 +1,10 @@
+import base64
+from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
-from drf_extra_fields.fields import Base64ImageField
-from food.models import AmountIngredient, Ingredient, Recipe, Tag
+from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework import serializers
 from users.models import User
-from .utils import delete_old_ingredients
+# from .utils import delete_old_ingredients
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,8 +13,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'email', 'id', 'username', 'first_name',
-            'last_name', 'is_subscribed'
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
         )
 
     def get_is_subscribed(self, obj):
@@ -36,6 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(UserSerializer):
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -110,10 +116,21 @@ class SmallRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+
+            data = ContentFile(base64.b64decode(imgstr), name=f'temp.{ext}')
+
+        return super().to_internal_value(data)
+
+
 class FullRecipeSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    image = Base64ImageField()
+    image = Base64ImageField(required=False, allow_null=True)
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)
     ingredients = FullAmountIngredientSerializer(read_only=True, many=True)
