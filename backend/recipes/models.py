@@ -21,8 +21,7 @@ class Tag(models.Model):
     )
 
     class Meta:
-        verbose_name = "Тег"
-        verbose_name_plural = "Теги"
+        verbose_name = 'Тег'
 
     def __str__(self):
         return str(self.name)
@@ -40,7 +39,6 @@ class Ingredient(models.Model):
 
     class Meta:
         verbose_name = "Ингредиент"
-        verbose_name_plural = "Ингредиенты"
         ordering = ['name']
 
     def __str__(self):

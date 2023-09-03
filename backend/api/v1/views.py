@@ -2,86 +2,158 @@ from io import StringIO
 
 from django.contrib.auth.hashers import check_password
 from django.db.models import Sum
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from django.core import exceptions as django_exceptions
+from recipes.models import (
+    AmountIngredient,
+    FavoriteRecipe,
+    Ingredient,
+    Recipe,
+    ShoppingList,
+    Tag
+)
+from users.models import Follow
 
-from recipes.models import (AmountIngredient, FavoriteRecipe, Ingredient,
-                            Recipe, ShoppingList, Tag)
-from users.models import Follow, User
+from api.v1.filters import (
+    IngredientSearchFilterBackend,
+    RecipeFilterBackend
+)
+from api.v1.permissions import RecipePermission, UserPermission
+from api.v1.serializers import (
+    FollowSerializer,
+    FullRecipeSerializer,
+    IngredientSerializer,
+    PasswordSerializer,
+    RecordRecipeSerializer,
+    SmallRecipeSerializer,
+    TagSerializer,
+    UserCreateSerializer,
+    UserReadSerializer
+)
 
-from .filters import IngredientSearchFilterBackend, RecipeFilterBackend
-from .permissions import RecipePermission, UserPermission
-from .serializers import (FollowSerializer, FullRecipeSerializer,
-                          IngredientSerializer, PasswordSerializer,
-                          RecordRecipeSerializer, SmallRecipeSerializer,
-                          TagSerializer, UserSerializer)
 # from .utils import PageLimitPaginator, delete_old_ingredients
 
 
-class UserViewSet(
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    pagination_class = PageNumberPagination
-    permission_classes = (UserPermission,)
+User = get_user_model()
 
-    @action(
-        detail=False,
-        methods=['GET'],
-        permission_classes=(permissions.IsAuthenticated,)
-    )
-    def me(self, request):
-        serializer = UserSerializer(request.user, context={'request': request})
+class UserViewSet(mixins.CreateModelMixin,
+                  mixins.ListModelMixin,
+                  mixins.RetrieveModelMixin,
+                  viewsets.GenericViewSet):
+    """Вьюсет юзера."""
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return UserReadSerializer
+        return UserCreateSerializer
+
+    @action(detail=False, methods=['post'],
+            permission_classes=(AllowAny,))
+    def signup(self, request):
+        serializer = UserCreateSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(
-        detail=False,
-        methods=['POST'],
-        permission_classes=(permissions.IsAuthenticated,)
-    )
+    @action(detail=False, methods=['get'],
+            pagination_class=None,
+            permission_classes=(IsAuthenticated,))
+    def me(self, request):
+        serializer = UserReadSerializer(request.user)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'],
+            permission_classes=(IsAuthenticated,))
     def set_password(self, request):
-        serializer = PasswordSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        password = serializer.validated_data['current_password']
-        new_password = serializer.validated_data['new_password']
-        username = request.user.username
-        user = get_object_or_404(
-            self.get_queryset(),
-            username=username
-        )
-        if check_password(password, user.password):
-            user.set_password(new_password)
-            user.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer = SetPasswordSerializer(request.user, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response({'detail': 'Пароль успешно изменен'},
+                        status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
-        methods=['GET'],
-        permission_classes=(permissions.IsAuthenticated,),
+        methods=['get'],
+        permission_classes=(IsAuthenticated,),
+        pagination_class=PageNumberPagination
     )
     def subscriptions(self, request):
-        queryset = self.get_queryset().filter(
-            following__user=request.user
-        ).order_by('pk')
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = FollowSerializer(
-                page, many=True, context={'request': request}
-            )
-            return self.get_paginated_response(serializer.data)
+        queryset = User.objects.filter(subscribing__user=request.user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(pages, many=True,
+                                             context={'request': request})
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=(IsAuthenticated,)
+    )
+    def subscribe(self, request, **kwargs):
+        author = get_object_or_404(User, id=kwargs['pk'])
         serializer = FollowSerializer(
-            queryset, many=True, context={'request': request}
+            author,
+            data=request.data,
+            context={"request": request}
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)
+        serializer.create(request.user, author)
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED)
+
+    @subscribe.mapping.delete
+    def unsubscribe(self, request, **kwargs):
+        author = get_object_or_404(User, id=kwargs['pk'])
+        get_object_or_404(
+            Follow,
+            user=request.user,
+            author=author
+        ).delete()
+        return Response({'detail': 'Успешная отписка'},
+                        status=status.HTTP_204_NO_CONTENT)
+
+
+class SetPasswordSerializer(serializers.Serializer):
+    """Изменение пароля пользователя."""
+
+    current_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate(self, obj):
+        try:
+            validate_password(obj['new_password'])
+        except django_exceptions.ValidationError as e:
+            raise serializers.ValidationError(
+                {'new_password': list(e.messages)}
+            )
+        return super().validate(obj)
+
+    def update(self, instance, validated_data):
+        if not instance.check_password(validated_data['current_password']):
+            raise serializers.ValidationError(
+                {'current_password': 'Неверный пароль'}
+            )
+        if (validated_data['current_password']
+           == validated_data['new_password']):
+            raise serializers.ValidationError(
+                {'new_password': 'Новый пароль должен отличаться от текущего'}
+            )
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return validated_data
 
 
 class FollowViewSet(viewsets.ViewSet):

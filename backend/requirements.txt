@@ -1,8 +1,9 @@
 Django
-djangorestframework
 django-filter
-psycopg2-binary
+djangorestframework
+djangorestframework_simplejwt
 djoser
 flake8
 gunicorn
 Pillow
+psycopg2-binary

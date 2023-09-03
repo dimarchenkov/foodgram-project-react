@@ -1,13 +1,20 @@
 import base64
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework import serializers
-from users.models import User
+from djoser.serializers import UserSerializer
+from users.models import User, Follow
 # from .utils import delete_old_ingredients
 
 
-class UserSerializer(serializers.ModelSerializer):
+User = get_user_model()
+
+
+class UserReadSerializer(UserSerializer):
+    """Cписок пользователей."""
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -18,26 +25,39 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed',
+            'is_subscribed'
         )
 
     def get_is_subscribed(self, obj):
-        if self.context['request'].user.is_authenticated:
-            return obj.following.filter(
-                user=self.context['request'].user
+        request = self.context.get('request')
+        if (request and request.user.is_authenticated):
+            return Follow.objects.filter(
+                user=request.user,
+                author=obj
             ).exists()
         return False
 
-    def validate(self, data):
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Username указан неверно!')
-        return data
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    """Создание нового пользователя."""
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'password'
+        )
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        return User.objects.create_user(
-            **validated_data, password=self.initial_data['password']
-        )
+        user = User(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
 class FollowSerializer(UserSerializer):
