@@ -45,6 +45,7 @@ from api.v1.serializers import (
 
 User = get_user_model()
 
+
 class UserViewSet(mixins.CreateModelMixin,
                   mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
@@ -138,7 +139,7 @@ class SetPasswordSerializer(serializers.Serializer):
         except django_exceptions.ValidationError as e:
             raise serializers.ValidationError(
                 {'new_password': list(e.messages)}
-            )
+            ) from e
         return super().validate(obj)
 
     def update(self, instance, validated_data):
@@ -245,9 +246,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_cart_file.getvalue(),
             content_type='text'
         )
-        response['Content-Disposition'] = (
-            'attachment; filename="%s"' % 'shopping_list.txt'
-        )
+        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
         return response
 
 

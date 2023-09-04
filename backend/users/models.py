@@ -38,6 +38,7 @@ class User(AbstractUser):
                 name='unique_username_email'
             )
         ]
+
     def __str__(self):
         return self.username
 

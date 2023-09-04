@@ -4,8 +4,6 @@ URL для API версии 1
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-# from .views import (IngredientViewSet, RecipeViewSet, TagViewSet,
-#                   SubscriptionViewSet)
 from api.v1.views import (
     IngredientViewSet,
     RecipeViewSet,
