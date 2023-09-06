@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import (AmountIngredient, FavoriteRecipe, Ingredient, Recipe,
+from .models import (Ingredient, FavoriteRecipe, IngredientSum, Recipe,
                      ShoppingList, Tag)
 
 
@@ -34,7 +34,7 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-@admin.register(AmountIngredient)
+@admin.register(IngredientSum)
 class AmountIngredientAdmin(admin.ModelAdmin):
     list_display = (
         'ingredient',

@@ -34,7 +34,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         verbose_name='Единицы измерения ингредиента',
-        max_length=50,
+        max_length=200,
     )
 
     class Meta:
@@ -45,7 +45,7 @@ class Ingredient(models.Model):
         return str(self.name)
 
 
-class AmountIngredient(models.Model):
+class IngredientSum(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         verbose_name='Название ингредиента',
@@ -91,7 +91,7 @@ class Recipe(models.Model):
         help_text='Текстовое описание рецепта'
     )
     ingredients = models.ManyToManyField(
-        AmountIngredient,
+        IngredientSum,
         related_name='recipes',
         verbose_name='Ингредиенты рецепта'
     )

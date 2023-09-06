@@ -1,11 +1,10 @@
 from io import StringIO
 
-from django.contrib.auth.hashers import check_password
 from django.db.models import Sum
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -14,9 +13,9 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from recipes.models import (
-    AmountIngredient,
-    FavoriteRecipe,
     Ingredient,
+    FavoriteRecipe,
+    IngredientSum,
     Recipe,
     ShoppingList,
     Tag
@@ -27,18 +26,18 @@ from api.v1.filters import (
     IngredientSearchFilterBackend,
     RecipeFilterBackend
 )
-from api.v1.permissions import RecipePermission, UserPermission
+from api.v1.permissions import RecipePermission
 from api.v1.serializers import (
     FollowSerializer,
-    FullRecipeSerializer,
+    RecipeSerializer,
     IngredientSerializer,
-    PasswordSerializer,
-    RecordRecipeSerializer,
-    SmallRecipeSerializer,
+    RecipeCreateSerializer,
+    RecipeShortSerializer,
     TagSerializer,
     UserCreateSerializer,
-    UserReadSerializer
+    UserSerializer
 )
+from api.v1.mixins import CreateRetriveListViewSet, RetriveListViewSet
 
 # from .utils import PageLimitPaginator, delete_old_ingredients
 
@@ -46,18 +45,15 @@ from api.v1.serializers import (
 User = get_user_model()
 
 
-class UserViewSet(mixins.CreateModelMixin,
-                  mixins.ListModelMixin,
-                  mixins.RetrieveModelMixin,
-                  viewsets.GenericViewSet):
-    """Вьюсет юзера."""
+class UserViewSet(CreateRetriveListViewSet):
+    """Вьюсет пользователя."""
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
-            return UserReadSerializer
+            return UserSerializer
         return UserCreateSerializer
 
     @action(detail=False, methods=['post'],
@@ -72,7 +68,7 @@ class UserViewSet(mixins.CreateModelMixin,
             pagination_class=None,
             permission_classes=(IsAuthenticated,))
     def me(self, request):
-        serializer = UserReadSerializer(request.user)
+        serializer = UserSerializer(request.user)
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
@@ -94,8 +90,11 @@ class UserViewSet(mixins.CreateModelMixin,
     def subscriptions(self, request):
         queryset = User.objects.filter(subscribing__user=request.user)
         pages = self.paginate_queryset(queryset)
-        serializer = FollowSerializer(pages, many=True,
-                                             context={'request': request})
+        serializer = FollowSerializer(
+            pages,
+            many=True,
+            context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
 
     @action(
@@ -108,7 +107,7 @@ class UserViewSet(mixins.CreateModelMixin,
         serializer = FollowSerializer(
             author,
             data=request.data,
-            context={"request": request}
+            context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.create(request.user, author)
@@ -184,16 +183,14 @@ class FollowViewSet(viewsets.ViewSet):
         return Response(status.HTTP_400_BAD_REQUEST)
 
 
-class TagViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
+class TagViewSet(RetriveListViewSet):
+    """Вьюсет тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
-class IngredientViewSet(TagViewSet):
+class IngredientViewSet(RetriveListViewSet):
+    """Вьюсет ингридиента."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (IngredientSearchFilterBackend,)
@@ -201,16 +198,17 @@ class IngredientViewSet(TagViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет рецепта."""
     queryset = Recipe.objects.all()
-    serializer_class = FullRecipeSerializer
+    serializer_class = RecipeSerializer
     pagination_class = PageNumberPagination
     permission_classes = (RecipePermission,)
     filter_backends = (RecipeFilterBackend,)
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
-            return RecordRecipeSerializer
-        return FullRecipeSerializer
+            return RecipeCreateSerializer
+        return RecipeSerializer
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -224,7 +222,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(permissions.IsAuthenticated,),
     )
     def download_shopping_cart(self, request):
-        shopping_list = AmountIngredient.objects.filter(
+        shopping_list = IngredientSum.objects.filter(
             recipes__shopping_list_recipes__user=request.user
         )
         shopping_list = shopping_list.values('ingredient').annotate(
@@ -246,7 +244,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_cart_file.getvalue(),
             content_type='text'
         )
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_list.txt"'
+        )
         return response
 
 
@@ -261,7 +261,7 @@ class CustomCreateAndDeleteMixin:
                 user=request.user,
                 recipe=recipe
             )
-            serializer = SmallRecipeSerializer(
+            serializer = RecipeShortSerializer(
                 recipe, context={'request': request}
             )
             return Response(serializer.data, status.HTTP_201_CREATED)
