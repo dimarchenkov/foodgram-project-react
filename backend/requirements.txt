@@ -1,4 +1,5 @@
 Django
+drf-extra-fields
 django-filter
 djangorestframework
 djangorestframework_simplejwt
@@ -6,4 +7,4 @@ djoser
 flake8
 gunicorn
 Pillow
-psycopg2-binary
+psycopg
