@@ -45,7 +45,7 @@ from api.v1.mixins import CreateRetriveListViewSet, RetriveListViewSet
 User = get_user_model()
 
 
-class UserViewSet(CreateRetriveListViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет пользователя."""
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
@@ -156,7 +156,7 @@ class SetPasswordSerializer(serializers.Serializer):
         return validated_data
 
 
-class FollowViewSet(viewsets.ViewSet):
+class FollowViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     def create(self, request, user_id):
@@ -183,18 +183,19 @@ class FollowViewSet(viewsets.ViewSet):
         return Response(status.HTTP_400_BAD_REQUEST)
 
 
-class TagViewSet(RetriveListViewSet):
+class TagViewSet(viewsets.ModelViewSet):
     """Вьюсет тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
-class IngredientViewSet(RetriveListViewSet):
+class IngredientViewSet(viewsets.ModelViewSet):
     """Вьюсет ингридиента."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (IngredientSearchFilterBackend,)
-    search_fields = ('^name', 'name')
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -202,19 +203,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (RecipePermission,)
+    # permission_classes = (RecipePermission,)
+    permission_classes = (AllowAny,)
     filter_backends = (RecipeFilterBackend,)
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
             return RecipeCreateSerializer
         return RecipeSerializer
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        # delete_old_ingredients(instance)
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,

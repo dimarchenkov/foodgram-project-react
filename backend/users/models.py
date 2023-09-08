@@ -9,21 +9,22 @@ class User(AbstractUser):
     """Кастомная модель пользователя."""
 
     first_name = models.CharField(
-        max_length=255,
+        max_length=150,
         verbose_name='Имя',
     )
     last_name = models.CharField(
-        max_length=255,
+        max_length=150,
         verbose_name='Фамилия',
     )
     username = models.CharField(
         max_length=150,
-        unique=True,
         verbose_name='Логин',
+        unique=True,
     )
     email = models.EmailField(
-        unique=True,
+        max_length=254,
         verbose_name='e-mail',
+        unique=True,
     )
     password = models.CharField(
         max_length=150,
@@ -32,12 +33,8 @@ class User(AbstractUser):
 
     class Meta:
         verbose_name = 'Пользователь'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_username_email'
-            )
-        ]
+        ordering = ['username']
+        verbose_name = 'Пользователь'
 
     def __str__(self):
         return self.username
