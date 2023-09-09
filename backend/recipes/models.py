@@ -104,13 +104,11 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredients',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
-        related_name='recipes'
     )
     amount = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
@@ -129,6 +127,7 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f'{self.ingredient} * {self.amount}'
+
 
 class FavoriteRecipe(models.Model):
     """Модель избранного рецепта."""

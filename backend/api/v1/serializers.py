@@ -1,12 +1,14 @@
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from recipes.models import IngredientSum, Ingredient, Recipe, Tag
+from recipes.models import RecipeIngredient, Ingredient, Recipe, Tag
 from rest_framework import serializers
 from djoser.serializers import UserSerializer
 from users.models import Follow
 from api.v1.utils import Base64ImageField
 # from .utils import delete_old_ingredients
+from django.contrib.auth.password_validation import validate_password
+from django.core import exceptions as django_exceptions
 
 
 User = get_user_model()
@@ -60,6 +62,36 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return user
 
 
+class SetPasswordSerializer(serializers.Serializer):
+    """Изменение пароля пользователя."""
+
+    current_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate(self, obj):
+        try:
+            validate_password(obj['new_password'])
+        except django_exceptions.ValidationError as e:
+            raise serializers.ValidationError(
+                {'new_password': list(e.messages)}
+            ) from e
+        return super().validate(obj)
+
+    def update(self, instance, validated_data):
+        if not instance.check_password(validated_data['current_password']):
+            raise serializers.ValidationError(
+                {'current_password': 'Неверный пароль'}
+            )
+        if (validated_data['current_password']
+           == validated_data['new_password']):
+            raise serializers.ValidationError(
+                {'new_password': 'Новый пароль должен отличаться от текущего'}
+            )
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return validated_data
+
+
 class TagSerializer(serializers.ModelSerializer):
     """Серелизатор тэгов."""
 
@@ -87,24 +119,29 @@ class IngredientSerializer(serializers.ModelSerializer):
 # =========================================================
 
 
-class IngredientRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='ingredient.id')
-    name = serializers.CharField(source='ingredient.name')
-    measurement_unit = serializers.CharField(
-        source='ingredient.measurement_unit'
-    )
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    # id = serializers.IntegerField(source='ingredient.id')
+    # name = serializers.CharField(source='ingredient.name')
+    # measurement_unit = serializers.CharField(
+    #     source='ingredient.measurement_unit'
+    # )
 
     class Meta:
-        model = IngredientSum
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        model = RecipeIngredient
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+            'amount'
+        )
 
 
-class IngredientAmountSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+# class IngredientAmountSerializer(serializers.ModelSerializer):
+#     id = serializers.IntegerField()
 
-    class Meta:
-        model = IngredientSum
-        fields = ('id', 'amount')
+#     class Meta:
+#         model = IngredientSum
+#         fields = ('id', 'amount')
 
 
 #  Рецепты.
@@ -114,7 +151,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    ingredients = IngredientRecipeSerializer(read_only=True, many=True)
+    ingredients = RecipeIngredientSerializer(read_only=True, many=True)
 
     class Meta:
         model = Recipe
@@ -145,7 +182,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(RecipeSerializer):
-    ingredients = IngredientRecipeSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
@@ -176,7 +213,7 @@ class RecipeCreateSerializer(RecipeSerializer):
                 pk=new_ingredient['id']
             )
             amount_ingredient, created = (
-                IngredientSum.objects.get_or_create(
+                RecipeIngredient.objects.get_or_create(
                     ingredient=ingredient,
                     amount=new_ingredient['amount']
                 )

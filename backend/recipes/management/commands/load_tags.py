@@ -1,5 +1,5 @@
 """
-Команда для импота ингридиентов в БД.
+Команда для импота тэгов в БД.
 """
 import json
 
@@ -10,6 +10,8 @@ from recipes.models import Tag
 
 
 class Command(BaseCommand):
+    """Команда импотра Тэгов в базу данных"""
+
     help = 'Импорт ингридиентов из файла json'
 
     BASE_DIR = settings.BASE_DIR

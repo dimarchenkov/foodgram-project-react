@@ -10,6 +10,7 @@ from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
+    """Команда импорта ингридиентов в базу данных."""
     help = 'Импорт ингридиентов из файла json'
 
     BASE_DIR = settings.BASE_DIR
@@ -21,7 +22,6 @@ class Command(BaseCommand):
                 data = json.load(file)
                 for item in data:
                     Ingredient.objects.get_or_create(**item)
-                    self.stdout.write(f'add {item}')
         except CommandError as error:
             raise CommandError from error
 
