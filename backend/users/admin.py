@@ -9,6 +9,7 @@ from .models import Follow, User
 
 @admin.register(User)
 class Admin(UserAdmin):
+    """Регистрация юзера."""
     list_display = (
         'username',
         'first_name',
@@ -28,6 +29,7 @@ class Admin(UserAdmin):
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
+    """Регистрация подписчика."""
     list_display = (
         'user',
         'author',

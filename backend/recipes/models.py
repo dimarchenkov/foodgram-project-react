@@ -1,3 +1,5 @@
+"""Модели рецептов."""
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator
@@ -101,6 +103,7 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
+    """Модель связи MANY-TO-MANY для рецепта и ингредиента."""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
