@@ -1,35 +1,53 @@
-from rest_framework import filters
+from django_filters import rest_framework as filters
+from recipes.models import Ingredient
+from django_filters import AllValuesMultipleFilter
+from django_filters.rest_framework import BooleanFilter, FilterSet
+
+from recipes.models import Recipe
 
 
-class IngredientSearchFilterBackend(filters.SearchFilter):
-    search_param = 'name'
+class IngredientSearchFilter(filters.FilterSet):
+    """Фильтр для ингредиентов."""
+    # name = filters.CharFilter(lookup_expr='istartswith')
+    name = filters.CharFilter(method='filter_startwith_and_contains')
+
+    class Meta:
+        model = Ingredient
+        fields = ['name']
+
+    def filter_startwith_and_contains(self, queryset, name, value):
+        starts_with_queryset = queryset.filter(name__startswith=value)
+        contains_queryset = queryset.filter(name__contains=value)
+        return starts_with_queryset.union(contains_queryset)
 
 
-class RecipeFilterBackend(filters.BaseFilterBackend):
+class RecipeFilterBackend(FilterSet):
+    """Фильтр рецепта."""
 
-    def filter_queryset(self, request, queryset, view):
-        is_favorited = request.query_params.get('is_favorited')
-        is_in_shopping_cart = request.query_params.get(
-            'is_in_shopping_cart'
-        )
-        recipes_author = request.query_params.get('author')
-        recipes_tags = request.query_params.getlist('tags')
-        review_queryset = queryset
-        if is_favorited == '1':
-            review_queryset = review_queryset.filter(
-                favorite_recipes__user=request.user
-            )
-        if is_in_shopping_cart == '1':
-            review_queryset = review_queryset.filter(
-                shopping_list_recipes__user=request.user
-            )
-        if recipes_author is not None:
-            review_queryset = review_queryset.filter(
-                author=recipes_author
-            )
-        if recipes_tags:
-            regular_tags = '|'.join(recipes_tags)
-            review_queryset = review_queryset.filter(
-                tags__slug__regex=regular_tags
-            )
-        return review_queryset.distinct()
+    tags = AllValuesMultipleFilter(
+        field_name="tags__slug",
+    )
+    is_favorited = BooleanFilter(
+        method="filter_is_favorited",
+    )
+    is_in_shopping_cart = BooleanFilter(
+        method="filter_is_in_shopping_cart",
+    )
+
+    class Meta:
+        model = Recipe
+        fields = ("tags", "author", "is_favorited", "is_in_shopping_cart")
+
+    def filter_is_favorited(self, queryset, name, value):
+        """Фильтрация рецептов в избранном."""
+        if value:
+            return queryset.filter(
+                favorite_list_recipe__user=self.request.user)
+        return queryset
+
+    def filter_is_in_shopping_cart(self, queryset, name, value):
+        """Фильтрация рецептов в списке покупок."""
+        if value:
+            return queryset.filter(
+                shopping_cart_recipe__user=self.request.user)
+        return queryset

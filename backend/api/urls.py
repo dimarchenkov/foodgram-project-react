@@ -1,3 +1,4 @@
+"""Модуль настройки URL для приложения API."""
 from django.urls import include, path
 
 

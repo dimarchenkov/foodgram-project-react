@@ -28,6 +28,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 #DEBUG = os.environ.get('DEGUG') == 'True'
 DEBUG = True
 
+API_VERSION = 'v1'
+
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 
@@ -131,7 +133,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = '/static_backend'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/media_files'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -149,11 +155,47 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
-    'DEFAULT_PAGINATION_CLASS':
-    'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
 }
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
+    'HIDE_USERS': True,
+    # "PERMISSIONS": {
+    #     "resipe": ("api.permissions.AuthorStaffOrReadOnly,",),
+    #     "recipe_list": ("api.permissions.AuthorStaffOrReadOnly",),
+    #     "user": ("api.permissions.OwnerUserOrReadOnly",),
+    #     "user_list": ("api.permissions.OwnerUserOrReadOnly",),
+    # },
+    'SERIALIZERS': {
+        'user': f'api.{API_VERSION}.serializers.UserSerializer',
+        'user_list': f'api.{API_VERSION}.serializers.UserSerializer',
+        'current_user': f'api.{API_VERSION}.serializers.UserSerializer',
+        'user_create': f'api.{API_VERSION}.serializers.UserSerializer',
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    'loggers': {
+        'django.request': {
+            "handlers": ['console'],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "DEBUG"),
+            "propagate": False,
+        },
+        'django.server': {
+            "handlers": ['console'],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "DEBUG"),
+            "propagate": False,
+        }
+    },
 }

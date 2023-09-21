@@ -1,15 +1,10 @@
 """
-URL для API версии 1
+Модуль настройки URL для API версии 1
 """
+from api.v1.views import (IngredientViewSet, RecipeViewSet, TagViewSet,
+                          UserViewSet)
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-
-from api.v1.views import (
-    IngredientViewSet,
-    RecipeViewSet,
-    TagViewSet,
-    UserViewSet
-)
 
 v1_router = DefaultRouter()
 
@@ -18,9 +13,11 @@ v1_router.register('ingredients', IngredientViewSet)
 v1_router.register('recipes', RecipeViewSet)
 v1_router.register('users', UserViewSet)
 
+# print(v1_router.urls)
+
 urlpatterns = [
     path('', include(v1_router.urls)),
-    # path(r'auth/', include('djoser.urls.authtoken')),
+    path(r'auth/', include('djoser.urls.authtoken')),
     path(r'auth/', include('djoser.urls')),
 
 ]
