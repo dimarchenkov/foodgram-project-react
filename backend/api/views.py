@@ -114,7 +114,7 @@ class SubsciptionsViewSet(viewsets.ModelViewSet):
             many=True,
             context={'request': request}
         )
-        print(serializer.data)
+        logger.debug(serializer.data)
         return self.get_paginated_response(serializer.data)
 
 
@@ -129,7 +129,8 @@ class SubcribeViewSet(viewsets.ModelViewSet):
         user = get_object_or_404(CustomUser, id=user_id)
         subscribe = Subscription.objects.create(
             user=request.user,
-            following=user)
+            following=user
+        )
         serializer = RecipeMinifiedSerializer(
             subscribe,
             context={'request': request}
