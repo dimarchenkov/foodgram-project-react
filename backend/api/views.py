@@ -161,7 +161,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    def destroy(self, request,  *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         recipe = get_object_or_404(Recipe, id=self.kwargs['id'])
         user_id = request.user.id
         logger.debug(f'recipe id: {recipe.id}, user id: {user_id}')
@@ -173,7 +173,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
-    """Вьюсет добавления и удаления из корзины"""
+    """Вьюсет добавления и удаления из корзины."""
     pagination_class = PageLimitPagination
     queryset = ShoppingCart.objects.all()
     permission_classes = [IsAuthenticated]
