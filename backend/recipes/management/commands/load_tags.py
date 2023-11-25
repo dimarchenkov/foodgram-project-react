@@ -11,7 +11,7 @@ from recipes.models import Tag
 
 class Command(BaseCommand):
     """Команда импотра Тэгов в базу данных"""
-    help = 'Импорт ингридиентов из файла json'
+    help = 'Импорт тэгов из файла json'
 
     BASE_DIR = settings.BASE_DIR
 

@@ -29,8 +29,6 @@ SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 # DEBUG = os.environ.get('DEGUG') == 'True'
 DEBUG = True
 
-API_VERSION = 'v1'
-
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 
@@ -47,12 +45,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
-    'users',
-    'recipes',
+    'users.apps.UsersConfig',
+    'recipes.apps.RecipesConfig',
     'api',
 ]
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -89,13 +87,17 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': os.environ.get('POSTGRES_DB', 'django'),
+    #     'USER': os.environ.get('POSTGRES_USER', 'django'),
+    #     'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+    #     'HOST': os.environ.get('DB_HOST', ''),
+    #     'PORT': os.environ.get('DB_PORT', 5432),
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'django'),
-        'USER': os.environ.get('POSTGRES_USER', 'django'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', ''),
-        'PORT': os.environ.get('DB_PORT', 5432),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -138,7 +140,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/static_backend'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/media_files'
+# MEDIA_ROOT = '/media_files'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -160,43 +163,56 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'HIDE_USERS': True,
-    # "PERMISSIONS": {
-    #     "resipe": ("api.permissions.AuthorStaffOrReadOnly,",),
-    #     "recipe_list": ("api.permissions.AuthorStaffOrReadOnly",),
-    #     "user": ("api.permissions.OwnerUserOrReadOnly",),
-    #     "user_list": ("api.permissions.OwnerUserOrReadOnly",),
-    # },
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
     'SERIALIZERS': {
-        'user': f'api.{API_VERSION}.serializers.UserSerializer',
-        'user_list': f'api.{API_VERSION}.serializers.UserSerializer',
-        'current_user': f'api.{API_VERSION}.serializers.UserSerializer',
-        'user_create': f'api.{API_VERSION}.serializers.UserSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
+        'user_delete': 'api.CustomUserSerializer',
+        # 'user_create': 'api.serializers.UserSerializer',
     },
 }
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            "format": "{name} {levelname} {asctime} {module} {funcName} {message}",
+            "style": "{",
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
     },
     'root': {
-        "handlers": ["console"],
-        "level": "WARNING",
+        'handlers': ['console'],
+        'level': "WARNING",
     },
     'loggers': {
         'django.request': {
-            "handlers": ['console'],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "DEBUG"),
-            "propagate": False,
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'propagate': False,
         },
         'django.server': {
-            "handlers": ['console'],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "DEBUG"),
-            "propagate": False,
+            'handlers': ['console'],
+            'level': os.getenv("DJANGO_LOG_LEVEL", 'DEBUG'),
+            'propagate': False,
+        },
+        'api.serializers': {
+            'handlers': ['console'],
+            'level': os.getenv("DJANGO_LOG_LEVEL", 'DEBUG'),
+            'propagate': False,
+        },
+        'api.views': {
+            'handlers': ['console'],
+            'level': os.getenv("DJANGO_LOG_LEVEL", 'DEBUG'),
+            'propagate': False,
         }
     },
 }
