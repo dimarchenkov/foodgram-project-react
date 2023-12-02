@@ -357,16 +357,16 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
             )
 
         if (
-            user.follower.filter(following=following).exists() and
-            self.context['request'].method == 'POST'
+            user.follower.filter(following=following).exists()
+            and self.context['request'].method == 'POST'
         ):
             raise serializers.ValidationError(
                 {'subscription': 'Уже подписан.'}
             )
 
         if (
-            not user.follower.filter(following=following).exists() and
-            self.context['request'].method == 'DELETE'
+            not user.follower.filter(following=following).exists()
+            and self.context['request'].method == 'DELETE'
         ):
             raise serializers.ValidationError(
                 {'subscription': 'Нет такой подписки.'}
@@ -397,16 +397,16 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         recipe = attrs['recipe']
 
         if (
-            user.shopping_cart.filter(recipe=recipe).exists() and
-            self.context['request'].method == 'POST'
+            user.shopping_cart.filter(recipe=recipe).exists()
+            and self.context['request'].method == 'POST'
         ):
             raise serializers.ValidationError(
                 {'ShoppingCart': 'Уже в корзине.'}
             )
 
         if (
-            not user.shopping_cart.filter(recipe=recipe).exists() and
-            self.context['request'].method == 'DELETE'
+            not user.shopping_cart.filter(recipe=recipe).exists()
+            and self.context['request'].method == 'DELETE'
         ):
             raise serializers.ValidationError(
                 {'ShoppingCart': 'Нет такого рецепта.'}
@@ -433,16 +433,16 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
         recipe = attrs['recipe']
 
         if (
-            user.favorite_recipes.filter(recipe=recipe).exists() and
-            self.context['request'].method == 'POST'
+            user.favorite_recipes.filter(recipe=recipe).exists()
+            and self.context['request'].method == 'POST'
         ):
             raise serializers.ValidationError(
                 {'FavoriteRecipe': 'Уже добавлен.'}
             )
 
         if (
-            not user.favorite_recipes.filter(recipe=recipe).exists() and
-            self.context['request'].method == 'DELETE'
+            not user.favorite_recipes.filter(recipe=recipe).exists()
+            and self.context['request'].method == 'DELETE'
         ):
             raise serializers.ValidationError(
                 {'ShoppingCart': 'Нет такого рецепта.'}

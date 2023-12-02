@@ -101,7 +101,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     permission_classes = (AllowAny, )
     serializer_class = IngredientSerializer
-    filter_backends = (IngredientSearchFilter, )
+    filter_backends = [IngredientSearchFilter]
     search_fields = ('^name',)
     pagination_class = None
 
@@ -111,8 +111,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
     pagination_class = PageLimitPagination
-    permission_classes = (isAdminOrAuthorOrReadOnly, )
-    filter_backends = (filters.DjangoFilterBackend, )
+    permission_classes = [isAdminOrAuthorOrReadOnly]
+    filter_backends = [filters.DjangoFilterBackend]
     filterset_class = RecipeFilterBackend
 
     def get_serializer_class(self):
@@ -127,19 +127,13 @@ class SubsciptionsViewSet(viewsets.ModelViewSet):
     pagination_class = PageLimitPagination
 
     def list(self, request):
-        logger.debug('You in func list')
-
         queryset = CustomUser.objects.filter(following__user=self.request.user)
         pages = self.paginate_queryset(queryset)
-
-        logger.debug(f'queryset: {queryset}')
-
         serializer = SubscriptionListSerializer(
             pages,
             many=True,
             context={'request': request}
         )
-        logger.debug(serializer.data)
         return self.get_paginated_response(serializer.data)
 
 
@@ -188,9 +182,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     permission_classes = [isAdminOrAuthorOrReadOnly]
 
     def create(self, request, recipe_id):
-
         logger.debug(f'\n Get USER: {request.user} \n')
-
         serializer = self.get_serializer(
             data={
                 'user': request.user.id,
