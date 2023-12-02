@@ -18,6 +18,7 @@ class IngredientInline(admin.StackedInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'author',
         'pub_date',

@@ -8,3 +8,4 @@ gunicorn
 Pillow
 psycopg
 reportlab
+django-advanced-password-validation

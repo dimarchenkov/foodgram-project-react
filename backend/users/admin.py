@@ -20,6 +20,7 @@ class SubscriptionInline(admin.StackedInline):
 class Admin(admin.ModelAdmin):
     """Регистрация юзера."""
     list_display = (
+        'id',
         'username',
         'first_name',
         'last_name',

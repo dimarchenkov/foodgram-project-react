@@ -181,12 +181,6 @@ class RecipeIngredient(models.Model):
 
     class Meta:
         """Класс Meta модели RecipeIngredient."""
-        constraints = [
-            models.UniqueConstraint(
-                fields=['recipe', 'ingredient'],
-                name='unique_ingredient_recipe'
-            )
-        ]
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецепта'
 
@@ -267,6 +261,8 @@ class ShoppingCart(models.Model):
 
     class Meta:
         """Класс Meta для модели ShoppingCard."""
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
         ordering = ('user',)
         constraints = [
             models.UniqueConstraint(

@@ -1,36 +1,29 @@
 """ Модуль разрешений.
 """
 
-from rest_framework import permissions
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
-class isAdminOrAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Пользовательский класс разрешений, который позволяет безопасным методам
-    или прошедшим проверку пользователям получать разрешения.
+class isAdminOrAuthorOrReadOnly(BasePermission):
 
-    Методы:
-        has_permission(request, view): возвращает True, если метод запроса
-        безопасен или пользователь аутентифицирован,
-        в противном случае — False.
-        has_object_permission(request, view, obj): возвращает True, если метод
-        запроса безопасен или пользователь прошел проверку подлинности и имеет
-        права администратора, суперпользователя или автора для объекта,
-        в противном случае — False.
-    """
     def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_authenticated
+
+        if request.user and request.user.is_staff:
+            return True
+
+        return bool(
+            request.method in SAFE_METHODS or
+            request.user and
+            request.user.is_authenticated
         )
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+
+        if request.method in SAFE_METHODS:
             return True
+
         if request.user.is_authenticated:
             return (
-                request.user.is_admin
-                or request.user.is_superuser
-                or obj.author == request.user
+                obj.author == request.user
             )
         return False

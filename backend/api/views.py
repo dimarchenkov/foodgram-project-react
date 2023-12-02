@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import check_password
 from django_filters import rest_framework as filters
+from django.conf import settings
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
-    IsAdminUser,
 )
 from rest_framework.response import Response
 
@@ -17,7 +18,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from users.models import Subscription
 from recipes.models import (
     Ingredient,
     FavoriteRecipe,
@@ -27,13 +27,17 @@ from recipes.models import (
     ShoppingCart
 )
 from .serializers import (
+    FavoriteRecipeSerializer,
     IngredientSerializer,
     RecipeListSerializer,
     RecipeAddSerializer,
-    RecipeMinifiedSerializer,
+    SubscriptionCreateSerializer,
     TagSerializer,
     CustomUserSerializer,
+    CustomUserCreateSerializer,
     SubscriptionListSerializer,
+    SetPasswordSerializer,
+    ShoppingCartSerializer,
 )
 from .paginators import PageLimitPagination
 from .permissions import isAdminOrAuthorOrReadOnly
@@ -52,22 +56,42 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     pagination_class = PageLimitPagination
 
+    def get_serializer_class(self):
+        if self.request.method in ('GET',):
+            return CustomUserSerializer
+        return CustomUserCreateSerializer
+
     @action(
         detail=False,
         methods=('GET', ),
         permission_classes=(IsAuthenticated, )
     )
     def me(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = self.get_serializer(self.request.user)
+        serializer = CustomUserSerializer(self.request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SetPasswordViewSet(viewsets.ModelViewSet):
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = SetPasswordSerializer
+
+    def update(self, request, *args, **kwargs):
+        user = get_object_or_404(CustomUser, id=request.user.id)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        cur_password = serializer.validated_data['current_password']
+        new_password = serializer.validated_data['new_password']
+        if check_password(cur_password, user.password):
+            user.set_password(new_password)
+            user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет тега."""
     queryset = Tag.objects.all()
-    logger.debug(f'queryset: {queryset}')
     serializer_class = TagSerializer
     pagination_class = None
 
@@ -78,6 +102,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (AllowAny, )
     serializer_class = IngredientSerializer
     filter_backends = (IngredientSearchFilter, )
+    search_fields = ('^name',)
     pagination_class = None
 
 
@@ -120,26 +145,38 @@ class SubsciptionsViewSet(viewsets.ModelViewSet):
 
 class SubcribeViewSet(viewsets.ModelViewSet):
     """Вьюсет подписки и отписки."""
+    serializer_class = SubscriptionCreateSerializer
     pagination_class = None
-    permission_classes = [IsAdminUser | IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    def create(self, request, user_id):
-        logger.debug(f'user_id {user_id}')
-
-        user = get_object_or_404(CustomUser, id=user_id)
-        subscribe = Subscription.objects.create(
-            user=request.user,
-            following=user
-        )
-        serializer = RecipeMinifiedSerializer(
-            subscribe,
+    def create(self, request, following_id):
+        user = request.user
+        following = get_object_or_404(CustomUser, pk=following_id)
+        logger.debug(f'\n Get USER: {user} \n')
+        logger.debug(f'\n Get FOLLOWING: {following} \n')
+        serializer = self.get_serializer(
+            data={
+                'user': user.id,
+                'following': following.id
+            },
             context={'request': request}
         )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, user_id):
-        logger.debug(f'user_id {user_id}')
-        following = get_object_or_404(CustomUser, pk=user_id)
+    def destroy(self, request, following_id):
+        user = request.user
+        following = get_object_or_404(CustomUser, pk=following_id)
+
+        serializer = self.get_serializer(
+            data={
+                'user': user.id,
+                'following': following.id
+            },
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
         request.user.follower.filter(following=following).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -147,27 +184,42 @@ class SubcribeViewSet(viewsets.ModelViewSet):
 class FavoriteViewSet(viewsets.ModelViewSet):
     """Вьсет добавления и удаления избранного."""
     queryset = Recipe.objects.all()
-    serializer_class = RecipeMinifiedSerializer
-    permission_classes = [IsAuthenticated]
+    serializer_class = FavoriteRecipeSerializer
+    permission_classes = [isAdminOrAuthorOrReadOnly]
 
-    def create(self, request, *args, **kwargs):
-        logger.debug(request)
-        recipe = get_object_or_404(Recipe, id=self.kwargs['id'])
+    def create(self, request, recipe_id):
+
+        logger.debug(f'\n Get USER: {request.user} \n')
+
         serializer = self.get_serializer(
-            request.user.favorite_recipes.create(recipe=recipe)
+            data={
+                'user': request.user.id,
+                'recipe': recipe_id
+            },
+            context={'request': request}
         )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(
-            serializer.to_representation(instance=recipe),
+            serializer.data,
             status=status.HTTP_201_CREATED,
         )
 
-    def destroy(self, request, *args, **kwargs):
-        recipe = get_object_or_404(Recipe, id=self.kwargs['id'])
+    def destroy(self, request, recipe_id):
+        get_object_or_404(Recipe, id=recipe_id)
         user_id = request.user.id
-        logger.debug(f'recipe id: {recipe.id}, user id: {user_id}')
+        serializer = self.get_serializer(
+            data={
+                'user': request.user.id,
+                'recipe': recipe_id
+            },
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
         FavoriteRecipe.objects.filter(
             user__id=user_id,
-            recipe__id=recipe.id
+            recipe__id=recipe_id
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -177,23 +229,41 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     pagination_class = PageLimitPagination
     queryset = ShoppingCart.objects.all()
     permission_classes = [IsAuthenticated]
+    serializer_class = ShoppingCartSerializer
 
-    def create(self, request, *args, **kwargs):
-        recipe_id = self.kwargs["id"]
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        ShoppingCart.objects.create(user=request.user, recipe=recipe)
-        serializer = RecipeMinifiedSerializer()
-        return Response(
-            serializer.to_representation(instance=recipe),
-            status=status.HTTP_201_CREATED,
+    def create(self, request, recipe_id):
+        user = request.user
+        logger.debug(f'\n Get USER: {user} \n')
+        logger.debug(f'\n Get RECIPE_ID: {recipe_id} \n')
+        serializer = self.get_serializer(
+            data={
+                'user': user.id,
+                'recipe': recipe_id
+            },
+            context={'request': request}
         )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, *args, **kwargs):
-        recipe_id = self.kwargs['id']
-        user_id = request.user.id
+    def destroy(self, request, recipe_id):
+
+        get_object_or_404(ShoppingCart, recipe_id=recipe_id)
+
+        serializer = self.get_serializer(
+            data={
+                'user': request.user.id,
+                'recipe': recipe_id
+            },
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
         ShoppingCart.objects.filter(
-            user__id=user_id,
-            recipe__id=recipe_id).delete()
+            user__id=request.user.id,
+            recipe__id=recipe_id
+        ).delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -205,7 +275,12 @@ class DownloadShoppingCartViewset(viewsets.ModelViewSet):
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer, pagesize=A4)
 
-        pdfmetrics.registerFont(TTFont('Arial', '/app/data/ArialRegular.ttf'))
+        pdfmetrics.registerFont(
+            TTFont(
+                'Arial',
+                str(settings.BASE_DIR / 'data/ArialRegular.ttf')
+            )
+        )
         p.setFont('Arial', 16)
         x, y = 100, 750
 

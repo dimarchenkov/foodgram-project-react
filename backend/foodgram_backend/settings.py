@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django_filters',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
-    'api',
+    # 'api.apps.ApiConfig',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -170,7 +170,6 @@ DJOSER = {
         'user': 'api.serializers.CustomUserSerializer',
         'current_user': 'api.serializers.CustomUserSerializer',
         'user_delete': 'api.CustomUserSerializer',
-        # 'user_create': 'api.serializers.UserSerializer',
     },
 }
 
@@ -179,8 +178,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            "format": "{name} {levelname} {asctime} {module} {funcName} {message}",
-            "style": "{",
+            'format': '{asctime} {levelname}: {name} {module} {funcName} {message}',
+            'style': '{',
         },
     },
     'handlers': {
@@ -191,7 +190,7 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': "WARNING",
+        'level': 'WARNING',
     },
     'loggers': {
         'django.request': {
@@ -201,18 +200,47 @@ LOGGING = {
         },
         'django.server': {
             'handlers': ['console'],
-            'level': os.getenv("DJANGO_LOG_LEVEL", 'DEBUG'),
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
             'propagate': False,
         },
         'api.serializers': {
             'handlers': ['console'],
-            'level': os.getenv("DJANGO_LOG_LEVEL", 'DEBUG'),
-            'propagate': False,
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'propagate': True,
         },
         'api.views': {
             'handlers': ['console'],
             'level': os.getenv("DJANGO_LOG_LEVEL", 'DEBUG'),
             'propagate': False,
         }
+    },
+}
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django_advanced_password_validation.advanced_password_validation.ContainsUppercaseValidator',
+        'OPTIONS': {
+            'min_uppercase': 1
+        }
+    },
+    {
+        'NAME': 'django_advanced_password_validation.advanced_password_validation.ContainsLowercaseValidator',
+        'OPTIONS': {
+            'min_lowercase': 1
+        }
+    },
+    {
+        'NAME': 'django_advanced_password_validation.advanced_password_validation.ContainsSpecialCharactersValidator',
+        'OPTIONS': {
+            'min_characters': 1
+        }
+    },
+]
+
+DJOSER = {
+    "SERIALIZERS": {
+        "user_create": "api.serializers.UserCreateSerializer",
+        "user": "api.serializers.UserSerializer",
+        "current_user": "api.serializers.UserSerializer",
     },
 }

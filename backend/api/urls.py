@@ -14,7 +14,8 @@ from .views import (
     SubcribeViewSet,
     FavoriteViewSet,
     ShoppingCartViewSet,
-    DownloadShoppingCartViewset
+    DownloadShoppingCartViewset,
+    SetPasswordViewSet
 )
 
 v1_router = DefaultRouter()
@@ -26,7 +27,7 @@ v1_router.register('users', CustomUserViewSet)
 
 urlpatterns = [
     path(
-        'users/<int:user_id>/subscribe/',
+        'users/<int:following_id>/subscribe/',
         SubcribeViewSet.as_view({
             'post': 'create',
             'delete': 'destroy'
@@ -41,7 +42,14 @@ urlpatterns = [
         name='subscriptions'
     ),
     path(
-        'recipes/<int:id>/favorite/',
+        'users/set_password/',
+        SetPasswordViewSet.as_view({
+            'post': 'update'
+        }),
+        name='set_password'
+    ),
+    path(
+        'recipes/<int:recipe_id>/favorite/',
         FavoriteViewSet.as_view({
             'post': 'create',
             'delete': 'destroy'
@@ -49,12 +57,13 @@ urlpatterns = [
         name='favorite'
     ),
     path(
-        'recipes/<int:id>/shopping_cart/',
+        'recipes/<int:recipe_id>/shopping_cart/',
         ShoppingCartViewSet.as_view({
             'post': 'create',
             'delete': 'destroy'
         }),
-        name='shopping_cart'),
+        name='shopping_cart'
+    ),
     path(
         'recipes/download_shopping_cart/',
         DownloadShoppingCartViewset.as_view({
