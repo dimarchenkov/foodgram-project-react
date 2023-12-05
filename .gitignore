@@ -134,3 +134,9 @@ dmypy.json
 # js React
 frontend/build/
 frontend/node_modules/
+
+# VS Code
+.vscode/
+
+# Media
+backend/media/
