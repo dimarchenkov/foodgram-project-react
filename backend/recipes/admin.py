@@ -1,3 +1,6 @@
+"""
+Настойки админ панели django для модели Рецептов.
+"""
 from django.contrib import admin
 
 from .models import (
@@ -13,6 +16,7 @@ from .models import (
 class IngredientInline(admin.StackedInline):
     model = RecipeIngredient
     extra = 1
+    min_num = 1
 
 
 @admin.register(Recipe)

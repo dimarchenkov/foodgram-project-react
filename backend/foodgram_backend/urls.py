@@ -1,5 +1,5 @@
 """
-URL configuration for foodgram_backend project.
+Конфигурация URL для foodgram_backend.
 """
 from django.contrib import admin
 from django.urls import path, include

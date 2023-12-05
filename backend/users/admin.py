@@ -2,6 +2,9 @@
 Настойки интерфейса панели администратора.
 """
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group
+from rest_framework.authtoken.models import TokenProxy
 
 from .models import CustomUser, Subscription
 
@@ -17,15 +20,15 @@ class SubscriptionInline(admin.StackedInline):
 
 
 @admin.register(CustomUser)
-class Admin(admin.ModelAdmin):
+class CustomUserAdmin(UserAdmin):
     """Регистрация юзера."""
     list_display = (
         'id',
+        'email',
         'username',
         'first_name',
         'last_name',
-        'email',
-        'is_staff'
+        'is_staff',
     )
     list_filter = (
         'email',
@@ -54,3 +57,5 @@ class FollowAdmin(admin.ModelAdmin):
 
 
 admin.site.site_header = 'Администрирование Foodgram'
+admin.site.unregister(Group)
+admin.site.unregister(TokenProxy)

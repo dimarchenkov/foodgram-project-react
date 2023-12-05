@@ -6,6 +6,7 @@ djoser
 flake8
 gunicorn
 Pillow
-psycopg
 reportlab
 django-advanced-password-validation
+django-colorfield
+psycopg[binary]

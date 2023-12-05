@@ -1,8 +1,11 @@
+"""
+Настройки фильтрации.
+"""
 from django_filters.rest_framework import FilterSet
 from django_filters.rest_framework import filters as djangofilters
 from rest_framework.filters import SearchFilter
 
-from recipes.models import Ingredient, Tag, Recipe
+from recipes.models import Ingredient, Recipe
 
 
 class IngredientSearchFilter(SearchFilter):
@@ -20,10 +23,9 @@ class RecipeFilterBackend(FilterSet):
     is_in_shopping_cart = djangofilters.NumberFilter(
         method='get_is_in_shopping_cart'
     )
-    tags = djangofilters.ModelMultipleChoiceFilter(
+    tags = djangofilters.AllValuesMultipleFilter(
         field_name='tags__slug',
-        to_field_name='slug',
-        queryset=Tag.objects.all(),
+        lookup_expr='contains'
     )
 
     class Meta:
@@ -35,14 +37,16 @@ class RecipeFilterBackend(FilterSet):
             'tags'
         )
 
-    def get_is_in_shopping_cart(self, queryset, name, is_in_shopping_cart):
-        if is_in_shopping_cart == 1 and self.request.user.is_authenticated:
+    def get_is_in_shopping_cart(self, queryset, name, value):
+        if value and self.request.user.is_authenticated:
             return queryset.filter(
-                shopping_cart_recipes__user=self.request.user
+                shopping_carts__user=self.request.user
             )
         return queryset
 
-    def get_favorite_recipes(self, queryset, name, is_favorited):
-        if is_favorited == 1 and self.request.user.is_authenticated:
-            return queryset.filter(favoriterecipe__user=self.request.user)
+    def get_favorite_recipes(self, queryset, name, value):
+        if value and self.request.user.is_authenticated:
+            return queryset.filter(
+                favorite_recipes__user=self.request.user
+            )
         return queryset
