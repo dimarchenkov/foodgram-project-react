@@ -8,7 +8,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
     AllowAny,
-    IsAuthenticated,
+    IsAuthenticated
 )
 from rest_framework.response import Response
 
@@ -184,7 +184,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=['post'],
         permission_classes=[IsAuthenticated]
-        )
+    )
     def shopping_cart(self, request, pk):
         user = request.user
         logger.debug(f'\n Get USER: {user} \n')

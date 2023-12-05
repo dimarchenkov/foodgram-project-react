@@ -139,4 +139,4 @@ frontend/node_modules/
 .vscode/
 
 # Media
-backend/media/
+backend/ media/
