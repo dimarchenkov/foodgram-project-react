@@ -127,6 +127,7 @@ sudo docker compose -f docker-compose.production.yml -p foodgram-project-react e
 
 ## Документация
 Документация сделана с использованием Redoc на основе описания OpenAPI.
+
 Доступна по ссылке `[site]/api/docs` после запуска проекта.
 
 ## Пример запросов и ответов
@@ -168,5 +169,5 @@ sudo docker compose -f docker-compose.production.yml -p foodgram-project-react e
 "cooking_time": 1
 }
 ```
-## Авторство
+## Автор
 [Дмитрий М.](https://github.com/dimarchenkov/foodgram-project-react)
