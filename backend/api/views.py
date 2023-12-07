@@ -1,50 +1,34 @@
 """
 Модуль настройки вьюсетов.
 """
+import io
+import logging
+
+from django.conf import settings
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
-from django.conf import settings
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated
-)
-from rest_framework.response import Response
-
 from djoser.views import UserViewSet
-from django.http import FileResponse
-import io
-from reportlab.pdfgen import canvas
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
+                            RecipeIngredient, ShoppingCart, Tag)
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
-from recipes.models import (
-    Ingredient,
-    FavoriteRecipe,
-    Recipe,
-    RecipeIngredient,
-    Tag,
-    ShoppingCart
-)
-from .serializers import (
-    CustomUserSerializer,
-    TagSerializer,
-    IngredientSerializer,
-    FavoriteRecipeSerializer,
-    RecipeListSerializer,
-    RecipeAddSerializer,
-    SubscriptionListSerializer,
-    SubscriptionCreateSerializer,
-    ShoppingCartSerializer,
-)
+from users.models import CustomUser
+from .filters import IngredientSearchFilter, RecipeFilterBackend
 from .paginators import PageLimitPagination
 from .permissions import isAdminOrAuthorOrReadOnly
-from .filters import IngredientSearchFilter, RecipeFilterBackend
-from users.models import CustomUser
-import logging
-
+from .serializers import (CustomUserSerializer, FavoriteRecipeSerializer,
+                          IngredientSerializer, RecipeAddSerializer,
+                          RecipeListSerializer, ShoppingCartSerializer,
+                          SubscriptionCreateSerializer,
+                          SubscriptionListSerializer, TagSerializer)
 
 logger = logging.getLogger(__name__)
 

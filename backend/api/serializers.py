@@ -1,18 +1,13 @@
 """
 Модуль серелизаторов.
 """
-from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import (
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    Tag,
-    ShoppingCart,
-    FavoriteRecipe,
-)
-from users.models import Subscription, CustomUser
+from drf_extra_fields.fields import Base64ImageField
+
+from users.models import CustomUser, Subscription
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
+                            RecipeIngredient, ShoppingCart, Tag)
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
