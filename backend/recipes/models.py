@@ -44,7 +44,7 @@ class Ingredient(models.Model):
                 fields=['name', 'measurement_unit'],
                 name='unique_ingredient_fields',
                 violation_error_message=(
-                    {'%(class)s': '`name`, `color`, `slug` не уникальны'}
+                    {'name, measurement_unit': 'Поля не уникальны'}
                 )
             )
         ]
@@ -64,7 +64,6 @@ class Tag(models.Model):
 
         Мета:
             verbose_name (str): удобочитаемое имя модели.
-            ограничения (список): ограничения модели.
 
         Методы:
             __str__(): возвращает имя тега в виде строки.
@@ -86,15 +85,6 @@ class Tag(models.Model):
         """Класс Meta для модели Tag."""
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['name', 'color', 'slug'],
-                name='unique_tag_fields',
-                violation_error_message=(
-                    {'%(class)s': '`name`, `color`, `slug` не уникальны'}
-                )
-            )
-        ]
 
     def __str__(self):
         return self.name
@@ -287,7 +277,7 @@ class CommonUserRecipeModel(models.Model):
                 fields=['user', 'recipe'],
                 name='unique_user_recipe',
                 violation_error_message=(
-                    {'%(class)s': '`user`, `recipe` дожный быть уникальны'}
+                    {'user, recipe': 'Поля дожный быть уникальны'}
                 )
             )
         ]
@@ -304,7 +294,7 @@ class FavoriteRecipe(CommonUserRecipeModel):
         default_related_name = 'favorite_recipes'
 
     def __str__(self):
-        return f'Избранные рецепты {self.user.username}'
+        return f'Избранные рецепты {self.user}'
 
 
 class ShoppingCart(CommonUserRecipeModel):
@@ -318,4 +308,4 @@ class ShoppingCart(CommonUserRecipeModel):
         default_related_name = 'shopping_carts'
 
     def __str__(self):
-        return f'Список покупок {self.user.username}'
+        return f'Список покупок {self.user}'

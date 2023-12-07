@@ -1,10 +1,8 @@
 """
 Модуль серелизаторов.
 """
-import logging
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-# from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from recipes.models import (
     Ingredient,
@@ -15,9 +13,6 @@ from recipes.models import (
     FavoriteRecipe,
 )
 from users.models import Subscription, CustomUser
-
-
-logger = logging.getLogger(__name__)
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -181,10 +176,6 @@ class RecipeAddSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'tags': 'Поле отсуствует'}
             )
-        if not tags:
-            raise serializers.ValidationError(
-                {'tags': 'Отсутствуют теги'}
-            )
         if len(tags) != len(set(tags)):
             raise serializers.ValidationError(
                 {'tags': 'Теги не уникальны'}
@@ -200,15 +191,12 @@ class RecipeAddSerializer(serializers.ModelSerializer):
                 {'ingredients': 'Дублирование ингредиентов'}
             )
 
-        return attrs
-
-    # Ограничения не подтягиваются
-    def validate_image(self, image):
-        if not image:
+        if not attrs.get('image'):
             raise serializers.ValidationError(
                 {'image': 'Нет картинки'}
             )
-        return image
+
+        return attrs
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
@@ -283,8 +271,8 @@ class SubscriptionListSerializer(CustomUserSerializer):
         if recipes_limit:
             try:
                 recipes = recipes[:int(recipes_limit)]
-            except ValueError as err:
-                raise ValueError from err
+            except ValueError:
+                pass
 
         return RecipeMinifiedSerializer(
             recipes,
@@ -307,12 +295,12 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         following = attrs['following']
         if user == following:
             raise serializers.ValidationError(
-                {'subscription': 'Нельзя подписаться на себя.'}
+                {'following': 'Нельзя подписаться на себя.'}
             )
 
         if user.follower.filter(following=following).exists():
             raise serializers.ValidationError(
-                {'subscription': 'Уже подписан.'}
+                {'following': 'Уже подписан.'}
             )
 
         return attrs
@@ -338,7 +326,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
         if user.shopping_carts.filter(recipe=recipe).exists():
             raise serializers.ValidationError(
-                {'ShoppingCart': 'Уже в корзине.'}
+                {'recipe': 'Уже в корзине.'}
             )
         return attrs
 
@@ -363,7 +351,7 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
 
         if user.favorite_recipes.filter(recipe=recipe).exists():
             raise serializers.ValidationError(
-                {'FavoriteRecipe': 'Уже добавлен.'}
+                {'recipe': 'Уже добавлен.'}
             )
         return attrs
 

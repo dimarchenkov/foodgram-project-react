@@ -3,15 +3,13 @@ name: Main Foodgram workflow
 on:
   push:
     branches:
-      - main
-
+      - master
 jobs:
-
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     services:
       postgres:
         image: postgres:13
@@ -67,7 +65,7 @@ jobs:
         with:
           context: ./backend/
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
 
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker image to DockerHub
@@ -87,53 +85,53 @@ jobs:
         with:
           context: ./nginx/
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_gateway:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs:
-      - build_and_push_to_docker_hub
-      - build_gateway_and_push_to_docker_hub
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      - name: Copy docker-compose.yml via ssh
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "docker-compose.production.yml"
-          target: "foodgram-project-react"
-      - name: Executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            cd kittygram_final
-            sudo docker compose -f docker-compose.production.yml -p foodgram-project-react pull
-            sudo docker compose -f docker-compose.production.yml -p foodgram-project-react down
-            sudo docker compose -f docker-compose.production.yml -p foodgram-project-react up -d
-            sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py migrate
-            sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py load_ingredients
-            sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py load_tags
-            sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py collectstatic --noinput
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - build_and_push_to_docker_hub
+  #     - build_gateway_and_push_to_docker_hub
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v3
+  #     - name: Copy docker-compose.yml via ssh
+  #       uses: appleboy/scp-action@master
+  #       with:
+  #         host: ${{ secrets.HOST }}
+  #         username: ${{ secrets.USER }}
+  #         key: ${{ secrets.SSH_KEY }}
+  #         passphrase: ${{ secrets.SSH_PASSPHRASE }}
+  #         source: "docker-compose.production.yml"
+  #         target: "foodgram-project-react"
+  #     - name: Executing remote ssh commands to deploy
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.HOST }}
+  #         username: ${{ secrets.USER }}
+  #         key: ${{ secrets.SSH_KEY }}
+  #         passphrase: ${{ secrets.SSH_PASSPHRASE }}
+  #         script: |
+  #           cd foodgram-project-react
+  #           sudo docker compose -f docker-compose.production.yml -p foodgram-project-react pull
+  #           sudo docker compose -f docker-compose.production.yml -p foodgram-project-react down
+  #           sudo docker compose -f docker-compose.production.yml -p foodgram-project-react up -d
+  #           sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py migrate
+  #           sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py load_ingredients
+  #           sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py load_tags
+  #           sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py collectstatic --noinput
 
-  send_message:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-    - name: Send message
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: |
-          ${{ github.actor }} created commit:
-          Commit message: ${{ github.event.commits[0].message }}
-          Repository: ${{ github.repository }}
-          See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+  # send_message:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy
+  #   steps:
+  #   - name: Send message
+  #     uses: appleboy/telegram-action@master
+  #     with:
+  #       to: ${{ secrets.TELEGRAM_TO }}
+  #       token: ${{ secrets.TELEGRAM_TOKEN }}
+  #       message: |
+  #         ${{ github.actor }} created commit:
+  #         Commit message: ${{ github.event.commits[0].message }}
+  #         Repository: ${{ github.repository }}
+  #         See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
