@@ -124,8 +124,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/static_backend'
 
 MEDIA_URL = '/media/'
-# MEDIA_ROOT = '/media_files'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = '/media_files'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -188,18 +187,9 @@ LOGGING = {
             'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
             'propagate': False,
         },
-        'api.serializers': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
-            'propagate': True,
-        },
-        'api.views': {
-            'handlers': ['console'],
-            'level': os.getenv("DJANGO_LOG_LEVEL", 'DEBUG'),
-            'propagate': False,
-        }
     },
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {

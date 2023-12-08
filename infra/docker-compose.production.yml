@@ -1,0 +1,32 @@
+version: '3.3'
+volumes:
+  pg_data:
+  static:
+  media:
+services:
+  db:
+    image: postgres
+    restart: always
+    env_file: .env.example
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  backend:
+    image: dmitriy1223/foodgram_backend
+    depends_on:
+      - db
+    env_file: .env.example
+    volumes:
+      - static:/static_backend
+      - media:/media_files
+  nginx:
+    image: dmitriy1223/foodgram_gateway
+    ports:
+      - "9000:80"
+    volumes:
+      - media:/media_files
+      - static:/static_backend

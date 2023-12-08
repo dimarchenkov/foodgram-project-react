@@ -57,6 +57,7 @@ python3 manage.py runserver 127.0.0.1:8000
 
 Для развертвания на сервере используйте `docker-compose.production.yml`
 ```yaml
+version: '3.3'
 volumes:
   pg_data:
   static:
@@ -74,7 +75,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
-    image: dmitry123
+    image: dmitriy1223/foodgram_backend
     depends_on:
       - db
     env_file: .env.example
@@ -82,7 +83,7 @@ services:
       - static:/static_backend
       - media:/media_files
   nginx:
-     image: dmitry123
+    image: dmitriy1223/foodgram_gateway
     ports:
       - "80:80"
     volumes:
@@ -171,3 +172,7 @@ sudo docker compose -f docker-compose.production.yml -p foodgram-project-react e
 ```
 ## Автор
 [Дмитрий М.](https://github.com/dimarchenkov/foodgram-project-react)
+
+## Пример
+Пример сайта доступен по адресу:
+[https://foodgram-project.site](https://foodgram-project.site)
