@@ -111,6 +111,7 @@ sudo docker compose -f docker-compose.production.yml -p foodgram exec backend py
 sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_ingredients
 sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_tags
 sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py collectstatic
+```
 
 ### Доступные эндпоинты
 [IP адрес или домен] - главная страница проекта

@@ -24,9 +24,7 @@ class RecipeFilterBackend(FilterSet):
         method='get_is_in_shopping_cart'
     )
     tags = djangofilters.AllValuesMultipleFilter(
-        field_name='tags__slug',
-        lookup_expr='contains',
-        queryset=Tag.objects.all(),
+        field_name='tags__slug'
     )
 
     class Meta:

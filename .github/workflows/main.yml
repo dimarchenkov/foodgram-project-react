@@ -92,7 +92,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-      - name: Copy docker-compose.yml via ssh
+      - name: Copy docker-compose.production.yml via ssh
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -110,12 +110,12 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd foodgram-project-react
-            sudo docker compose -f docker-compose.production.yml -p foodgram pull
-            sudo docker compose -f docker-compose.production.yml -p foodgram down -v
-            sudo docker compose -f docker-compose.production.yml -p foodgram up -d
-            sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py migrate
-            sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_ingredients
-            sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_tags
+            sudo docker compose -f docker-compose.production.yml -p foodgram pull && \
+            sudo docker compose -f docker-compose.production.yml -p foodgram down -v && \
+            sudo docker compose -f docker-compose.production.yml -p foodgram up -d && \
+            sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py migrate && \
+            sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_ingredients && \
+            sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_tags && \
             sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py collectstatic --noinput
   send_message:
     runs-on: ubuntu-latest
