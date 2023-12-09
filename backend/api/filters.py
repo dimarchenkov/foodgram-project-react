@@ -5,7 +5,7 @@ from django_filters.rest_framework import FilterSet
 from django_filters.rest_framework import filters as djangofilters
 from rest_framework.filters import SearchFilter
 
-from recipes.models import Ingredient, Recipe
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientSearchFilter(SearchFilter):
@@ -25,7 +25,8 @@ class RecipeFilterBackend(FilterSet):
     )
     tags = djangofilters.AllValuesMultipleFilter(
         field_name='tags__slug',
-        lookup_expr='contains'
+        lookup_expr='contains',
+        queryset=Tag.objects.all(),
     )
 
     class Meta:

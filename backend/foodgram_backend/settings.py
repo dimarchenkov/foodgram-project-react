@@ -11,6 +11,7 @@ DEBUG = os.environ.get('DJANGO_DEGUG') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
 
+CSRF_TRUSTED_ORIGINS = ['https://foodgram-project.site']
 # Application definition
 
 INSTALLED_APPS = [
