@@ -15,8 +15,7 @@
 ### Локальный запуск проекта
 Клонируейте репозиторий с проектом:
 ```
-git clone https://github.com/dimarchenkov/foodgram-project-react.git && cd foodgram-project-react/backend
-```
+git clone https://github.com/dimarchenkov/foodgram-project-react.git && cd foodgram-project-react
 Создайте виртуальное окружение
 ```
 python -m venv .venv
@@ -85,7 +84,7 @@ services:
   nginx:
     image: dmitriy1223/foodgram_gateway
     ports:
-      - "80:80"
+      - "9000:80"
     volumes:
       - media:/media_files
       - static:/static_backend
@@ -108,11 +107,10 @@ DB_PORT=5432
 
 Настройте проект:
 ```bash
-sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py migrate
-sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py load_ingredients
-sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py load_tags
-sudo docker compose -f docker-compose.production.yml -p foodgram-project-react exec backend python manage.py collectstatic --noinput
-```
+sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py migrate
+sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_ingredients
+sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_tags
+sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py collectstatic
 
 ### Доступные эндпоинты
 [IP адрес или домен] - главная страница проекта
@@ -172,7 +170,6 @@ sudo docker compose -f docker-compose.production.yml -p foodgram-project-react e
 ```
 ## Автор
 [Дмитрий М.](https://github.com/dimarchenkov/foodgram-project-react)
-
 ## Пример
 Пример сайта доступен по адресу:
 [https://foodgram-project.site](https://foodgram-project.site)
