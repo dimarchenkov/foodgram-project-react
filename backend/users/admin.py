@@ -2,7 +2,7 @@
 Настойки интерфейса панели администратора.
 """
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from rest_framework.authtoken.models import TokenProxy
 from django.contrib.auth.forms import UserCreationForm
@@ -27,7 +27,7 @@ class SubscriptionInline(admin.StackedInline):
 
 
 @admin.register(CustomUser)
-class CustomUserAdmin(BaseUserAdmin):
+class CustomUserAdmin(UserAdmin):
     """Регистрация юзера."""
     model = CustomUser
     add_form = UserCreationForm
@@ -49,6 +49,21 @@ class CustomUserAdmin(BaseUserAdmin):
         'email',
         'first_name',
         'last_name'
+    )
+    fieldsets = (
+        (None, {'fields': (
+            'email', 'username', 'first_name', 'last_name', 'password',
+        )}),
+        ('Permissions', {'fields': ('is_avtive', 'is_staff', 'is_superuser',)})
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                'email', 'username', 'first_name', 'last_name', 'password1',
+                'password2', 'is_actice', 'is_staff', 'is_superuser',
+            )
+        }),
     )
     inlines = [SubscriptionOnInline, SubscriptionInline]
 
