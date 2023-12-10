@@ -97,7 +97,6 @@ class CustomUserAdmin(BaseUserAdmin):
         ('Permissions', {'fields': (
             'is_active',
             'is_admin',
-            'is_superuser',
         )})
     )
     add_fieldsets = (
@@ -105,7 +104,7 @@ class CustomUserAdmin(BaseUserAdmin):
             'classes': ('wide',),
             'fields': (
                 'email', 'username', 'first_name', 'last_name', 'password1',
-                'password2', 'is_active', 'is_admin', 'is_superuser',
+                'password2', 'is_active', 'is_admin',
             )
         }),
     )
