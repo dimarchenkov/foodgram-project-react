@@ -56,7 +56,6 @@ class CustomUserAdmin(UserAdmin):
         ('Contact info', {'fields': ('contact_no',)}),)
 
 
-
 @admin.register(Subscription)
 class FollowAdmin(admin.ModelAdmin):
     """Регистрация подписчика."""
