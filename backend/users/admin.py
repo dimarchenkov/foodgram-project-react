@@ -78,9 +78,9 @@ class CustomUserAdmin(UserAdmin):
         )}),
         ('Permissions', {'fields': (
             'is_blocked',
-            'is_staff', 'is_superuser',
-            )
-        })
+            'is_staff',
+            'is_superuser',
+        )})
     )
     add_fieldsets = (
         (None, {
