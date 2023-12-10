@@ -105,7 +105,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -190,25 +189,3 @@ LOGGING = {
         },
     },
 }
-
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django_advanced_password_validation.advanced_password_validation.ContainsUppercaseValidator',
-        'OPTIONS': {
-            'min_uppercase': 1
-        }
-    },
-    {
-        'NAME': 'django_advanced_password_validation.advanced_password_validation.ContainsLowercaseValidator',
-        'OPTIONS': {
-            'min_lowercase': 1
-        }
-    },
-    {
-        'NAME': 'django_advanced_password_validation.advanced_password_validation.ContainsSpecialCharactersValidator',
-        'OPTIONS': {
-            'min_characters': 1
-        }
-    },
-]
