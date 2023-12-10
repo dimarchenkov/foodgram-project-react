@@ -5,8 +5,35 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from rest_framework.authtoken.models import TokenProxy
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
 from .models import CustomUser, Subscription
+
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = CustomUser
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_active',
+            'is_staff'
+        )
+
+
+class CustomUserChangeForm(UserChangeForm):
+    class Meta:
+        model = CustomUser
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_active',
+            'is_staff'
+        )
 
 
 class SubscriptionOnInline(admin.StackedInline):
@@ -22,6 +49,9 @@ class SubscriptionInline(admin.StackedInline):
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     """Регистрация юзера."""
+    add_form = CustomUserCreationForm
+    form = CustomUserChangeForm
+
     list_display = (
         'id',
         'email',
@@ -42,8 +72,24 @@ class CustomUserAdmin(UserAdmin):
     )
     inlines = [SubscriptionOnInline, SubscriptionInline]
 
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {'fields': ('email', 'first_name', 'last_name',)}),
+    fieldsets = (
+        (None, {'fields': (
+            'email', 'username', 'first_name', 'last_name', 'password',
+        )}),
+        ('Permissions', {'fields': (
+            'is_blocked',
+            'is_staff', 'is_superuser',
+            )
+        })
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                'email', 'username', 'first_name', 'last_name', 'password1',
+                'password2', 'is_blocked', 'is_staff', 'is_superuser',
+            )
+        }),
     )
 
 

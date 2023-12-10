@@ -2,7 +2,6 @@
 Модуль настройки вьюсетов.
 """
 import io
-import logging
 
 from django.conf import settings
 from django.http import FileResponse
@@ -30,8 +29,6 @@ from .serializers import (CustomUserSerializer, FavoriteRecipeSerializer,
                           RecipeListSerializer, ShoppingCartSerializer,
                           SubscriptionCreateSerializer,
                           SubscriptionListSerializer, TagSerializer)
-
-logger = logging.getLogger(__name__)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -70,8 +67,6 @@ class CustomUserViewSet(UserViewSet):
     def subscribe(self, request, id):
         user = request.user
         following = get_object_or_404(CustomUser, pk=id)
-        logger.debug(f'\n Get USER: {user} \n')
-        logger.debug(f'\n Get FOLLOWING: {following} \n')
         serializer = SubscriptionCreateSerializer(
             data={
                 'user': user.id,
@@ -173,8 +168,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def shopping_cart(self, request, pk):
         user = request.user
-        logger.debug(f'\n Get USER: {user} \n')
-        logger.debug(f'\n Get RECIPE_ID: {pk} \n')
         serializer = ShoppingCartSerializer(
             data={
                 'user': user.id,
