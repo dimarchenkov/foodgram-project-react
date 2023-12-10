@@ -17,7 +17,8 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from users.models import CustomUser
@@ -102,13 +103,14 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет ингридиента."""
     queryset = Ingredient.objects.all()
-    permission_classes = (AllowAny, )
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = IngredientSerializer
     filter_backends = [IngredientSearchFilter]
     search_fields = ('^name',)
