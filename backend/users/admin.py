@@ -43,7 +43,7 @@ class CustomUserAdmin(UserAdmin):
     inlines = [SubscriptionOnInline, SubscriptionInline]
 
     add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {'fields': ('email',)}),
+        (None, {'fields': ('email', 'first_name', 'last_name',)}),
     )
 
 
