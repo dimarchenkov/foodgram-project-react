@@ -19,6 +19,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
+from django.db.models import Sum
 
 from users.models import CustomUser
 from .filters import IngredientSearchFilter, RecipeFilterBackend
@@ -210,13 +211,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         p.setFont('Arial', 16)
         x, y = 100, 750
 
-        ingredients = RecipeIngredient.objects.filter(
-            recipe__shopping_carts__user=request.user
-        ).values_list(
-            'ingredient__name',
-            'ingredient__measurement_unit',
-            'amount'
+        ingredients = (
+            RecipeIngredient.objects
+            .filter(recipe__shopping_carts__user=request.user)
+            .annotate(total_amount=Sum('amount'))
+            .values_list(
+                'ingredient__name',
+                'ingredient__measurement_unit',
+                'total_amount'
+            )
         )
+
         for ingredient in ingredients:
             text = (f'{ingredient[0]} {ingredient[2]} {ingredient[1]}')
             p.drawString(x, y, text)
