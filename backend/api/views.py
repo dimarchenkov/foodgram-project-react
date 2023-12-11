@@ -19,7 +19,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from django.db.models import Sum
 
 from users.models import CustomUser
 from .filters import IngredientSearchFilter, RecipeFilterBackend
