@@ -214,17 +214,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = (
             RecipeIngredient.objects
             .filter(recipe__shopping_carts__user=request.user)
-            .annotate(total_amount=Sum('amount'))
             .values_list(
                 'ingredient__name',
                 'ingredient__measurement_unit',
-                'total_amount'
+                'amount'
             )
         )
-
+        shop_list = {}
         for ingredient in ingredients:
-            text = (f'{ingredient[0]} {ingredient[2]} {ingredient[1]}')
-            p.drawString(x, y, text)
+            name = ingredient[0]
+            if name not in shop_list:
+                shop_list[name] = {
+                    'measurement_unit': ingredient[1],
+                    'amount': ingredient[2]
+                }
+            shop_list[name]['amount'] += ingredient[2]
+
+        for item, value in shop_list.items():
+            p.drawString(
+                x,
+                y,
+                f'{item} {value["amount"]} {value["measurement_unit"]}'
+            )
             y -= 24
         p.showPage()
         p.save()
