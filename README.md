@@ -14,40 +14,50 @@
 
 ### Локальный запуск проекта
 Клонируейте репозиторий с проектом:
-```
+```bash
 git clone https://github.com/dimarchenkov/foodgram-project-react.git && cd foodgram-project-react
-Создайте виртуальное окружение
 ```
+
+Создайте виртуальное окружение
+
+```bash
 python -m venv .venv
 ```
 
 Активируйте виртуальное окружение
-```
+
+```bash
 source .venv/bin/activate
 ```
 
 Установите библиотеки python
-```
+
+```bash
 pip install --upgrade pip && pip install -r requirements.txt
 ```
 
 Выполните миграцию базы данных
-```
+
+```bash
 python3 python3 manage.py migrate
 ```
 
 Создайте суперпользователя
-```
+
+```bash
 python3 manage.py createsuperuser
 ```
 
 Заполните базу данных
-```
-python3 manage.py load_tags
+
+```bash
+python3 manage.py load_tags && \
 python3 manage.py load_ingredients
 ```
+
 Запустите проект
-```
+
+```bash
 python3 manage.py runserver 127.0.0.1:8000
 ```
 
@@ -103,9 +113,12 @@ DB_PORT=5432
 ```
 
 Запустите проект:
-```docker compose -f docker-compose.yml up -d```
+```bash
+docker compose -f docker-compose.yml up -d
+```
 
 Настройте проект:
+
 ```bash
 sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py migrate
 sudo docker compose -f docker-compose.production.yml -p foodgram exec backend python manage.py load_ingredients
@@ -114,8 +127,8 @@ sudo docker compose -f docker-compose.production.yml -p foodgram exec backend py
 ```
 
 ### Доступные эндпоинты
-[IP адрес или домен] - главная страница проекта
-[IP адрес или домен]/admin/ - страница администратора(суперпользователя)
+* [IP адрес или домен] - главная страница проекта
+* [IP адрес или домен]/admin/ - страница администратора(суперпользователя)
 
 ## Стэк технологий
 Проект реализован по методологии REST API.
@@ -153,8 +166,8 @@ sudo docker compose -f docker-compose.production.yml -p foodgram exec backend py
     }
   ]
 }
-
 ```
+
 Запрос на лобавление рецепта в избранное:
 ```
 [POST] http://localhost/api/recipes/{id}/favorite/
@@ -169,8 +182,10 @@ sudo docker compose -f docker-compose.production.yml -p foodgram exec backend py
 "cooking_time": 1
 }
 ```
+
 ## Автор
 [Дмитрий М.](https://github.com/dimarchenkov/foodgram-project-react)
+
 ## Пример
 Пример сайта доступен по адресу:
 [https://foodgram-project.site](https://foodgram-project.site)

@@ -66,9 +66,6 @@ class CustomUser(AbstractUser):
         max_length=constants.PASSWORD_MAX_LENGTH,
         verbose_name='Пароль',
         help_text='Введите пароль пользователя',
-        validators=[
-            UnicodeUsernameValidator()
-        ],
     )
 
     class Meta:
