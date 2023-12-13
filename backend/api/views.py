@@ -239,9 +239,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         p.showPage()
         p.save()
         buffer.seek(0)
-        response = FileResponse(
+        return FileResponse(
             buffer,
             as_attachment=True,
             filename='shopping_cart.pdf',
         )
-        return response

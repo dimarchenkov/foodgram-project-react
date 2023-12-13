@@ -1,6 +1,8 @@
 """
 Модуль серелизаторов.
 """
+
+import contextlib
 from rest_framework import serializers
 
 from drf_extra_fields.fields import Base64ImageField
@@ -182,11 +184,7 @@ class RecipeAddSerializer(serializers.ModelSerializer):
                 {'tags': 'Теги не уникальны'}
             )
 
-        unique_ingr = set()
-
-        for item in ingredients:
-            unique_ingr.add(item['id'])
-
+        unique_ingr = {item['id'] for item in ingredients}
         if len(unique_ingr) != len(ingredients):
             raise serializers.ValidationError(
                 {'ingredients': 'Дублирование ингредиентов'}
@@ -268,13 +266,9 @@ class SubscriptionListSerializer(CustomUserSerializer):
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes = obj.recipes.all()
-        recipes_limit = request.query_params.get('recipes_limit')
-        if recipes_limit:
-            try:
+        if recipes_limit := request.query_params.get('recipes_limit'):
+            with contextlib.suppress(ValueError):
                 recipes = recipes[:int(recipes_limit)]
-            except ValueError:
-                pass
-
         return RecipeMinifiedSerializer(
             recipes,
             many=True,

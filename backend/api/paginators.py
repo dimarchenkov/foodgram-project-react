@@ -8,15 +8,13 @@ from foodgram_backend.constants import PAGE_SIZE_PAGINATORS
 
 class PageLimitPagination(PageNumberPagination):
     """
-    Кастомный класс пагинации для изменения стиля пагинации.
+    A pagination class that limits the number of items per page.
 
-    Атрибуты:
-    --------
-    page_size : int
-        Размер страницы.
-    page_size_query_param : str
-        Позволяет клиенту устанавливать размер
-        страницы на основе каждого запроса.
+    Attributes:
+        page_size (int): The number of items per page.
+        page_size_query_param (str): The query parameter
+        name for specifying the page size.
+
     """
     page_size = PAGE_SIZE_PAGINATORS
     page_size_query_param = 'limit'
